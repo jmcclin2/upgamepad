@@ -1,0 +1,6 @@
+[submodule "updebouncein"]
+	path = updebouncein
+	url = git@github.com:jmcclin2/updebouncein.git
+[submodule "up2axisjoystick"]
+	path = up2axisjoystick
+	url = git@github.com:jmcclin2/up2axisjoystick.git
