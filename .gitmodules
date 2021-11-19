@@ -7,3 +7,6 @@
 [submodule "upmma8451"]
 	path = upmma8451
 	url = git@github.com:jmcclin2/upmma8451.git
+[submodule "upcc3100"]
+	path = upcc3100
+	url = git@github.com:jmcclin2/upcc3100.git
