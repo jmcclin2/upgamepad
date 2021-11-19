@@ -4,3 +4,6 @@
 [submodule "up2axisjoystick"]
 	path = up2axisjoystick
 	url = git@github.com:jmcclin2/up2axisjoystick.git
+[submodule "upmma8451"]
+	path = upmma8451
+	url = git@github.com:jmcclin2/upmma8451.git
