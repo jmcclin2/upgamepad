@@ -1,6 +1,7 @@
 # Micropython imports
 from micropython import const
 import framebuf
+import time
 
 import gc
 
@@ -25,8 +26,8 @@ _SSD1327_DC_PIN          = const(8)
 _SSD1327_RES_PIN         = const(9)
 _SSD1327_CS_PIN          = const(5)
 
-_DISPLAY_HEIGHT_PIXELS   = const(128)
-_DISPLAY_WIDTH_PIXELS    = const(128)
+DISPLAY_HEIGHT_PIXELS   = const(128)
+DISPLAY_WIDTH_PIXELS    = const(128)
 
 _JOYSTICK_X_ATOD_PIN     = const(26)
 _JOYSTICK_Y_ATOD_PIN     = const(27)
@@ -67,8 +68,8 @@ class Gamepad:
             # Bounds check
             if (self.cur_x < 0):
                 self.cur_x = 0
-            elif (self.cur_x > _DISPLAY_WIDTH_PIXELS-1):
-                self.cur_x = _DISPLAY_WIDTH_PIXELS-1
+            elif (self.cur_x > DISPLAY_WIDTH_PIXELS-1):
+                self.cur_x = DISPLAY_WIDTH_PIXELS-1
                 
             # Adjust pixel y coordinate based on joystick deflection
             # Note: for display, positive change is down, negative is up
@@ -77,8 +78,8 @@ class Gamepad:
             # Bounds check
             if (self.cur_y < 0):
                 self.cur_y = 0
-            elif (self.cur_y > _DISPLAY_HEIGHT_PIXELS-1):
-                self.cur_y = _DISPLAY_HEIGHT_PIXELS-1
+            elif (self.cur_y > DISPLAY_HEIGHT_PIXELS-1):
+                self.cur_y = DISPLAY_HEIGHT_PIXELS-1
                 
             #print("_joystick_cb x:" + str(self.cur_x) + " y:" + str(self.cur_y))
     
@@ -144,15 +145,17 @@ class Gamepad:
         ssd1327_spi = SPI(_SSD1327_SPI_BUS, sck=Pin(_SSD1327_SPI_SCK_PIN), mosi=Pin(_SSD1327_SPI_MOSI_PIN))
 
         # Initialize display
-        self.ssd1327 = SSD1327_SPI(_DISPLAY_WIDTH_PIXELS, _DISPLAY_HEIGHT_PIXELS, ssd1327_spi, Pin(_SSD1327_DC_PIN), Pin(_SSD1327_RES_PIN), Pin(_SSD1327_CS_PIN))
+        self.ssd1327 = SSD1327_SPI(DISPLAY_WIDTH_PIXELS, DISPLAY_HEIGHT_PIXELS, ssd1327_spi, Pin(_SSD1327_DC_PIN), Pin(_SSD1327_RES_PIN), Pin(_SSD1327_CS_PIN))
 
         # Show splash logo
         a = bytearray(logo_data.data())
-        fbuf = framebuf.FrameBuffer(a, _DISPLAY_WIDTH_PIXELS, _DISPLAY_HEIGHT_PIXELS, framebuf.GS4_HMSB)
-        self.show(fbuf)
+        fbuf = framebuf.FrameBuffer(a, DISPLAY_WIDTH_PIXELS, DISPLAY_HEIGHT_PIXELS, framebuf.GS4_HMSB)
+        self.blit(fbuf, 0, 0, 0)
+        self.show()
+        time.sleep(3)
         
         # Initialize joystick
-        self.joystick = TwoAxisAnalogJoystick(_JOYSTICK_X_ATOD_PIN, _JOYSTICK_Y_ATOD_PIN, polling_ms=1000, callback=self._joystick_cb, deadzone=0x2000)
+        self.joystick = TwoAxisAnalogJoystick(_JOYSTICK_X_ATOD_PIN, _JOYSTICK_Y_ATOD_PIN, polling_ms=10, callback=self._joystick_cb, deadzone=0x2000)
         self.joystick.StartPolling()
         
         self.a_button = DebouncedInput(_BUTTON_A_PIN, self.a_button_cb, pin_pull=Pin.PULL_UP, pin_logic_pressed=False, debounce_ms=50)
@@ -162,10 +165,14 @@ class Gamepad:
         #self.left_shoulder = DebouncedInput(_BUTTON_L_SHOULDER_PIN, self.lshldr_button_cb, pin_pull=Pin.PULL_UP, pin_logic_pressed=False, debounce_ms=50)
         #self.right_shoulder = DebouncedInput(_BUTTON_R_SHOULDER_PIN, self.rshldr_button_cb, pin_pull=Pin.PULL_UP, pin_logic_pressed=False, debounce_ms=50)
             
-    def show(self, framebuf):        
-        self.ssd1327.fill(0)
-        self.ssd1327.blit(framebuf, 0, 0, 0)
+    def show(self):        
         self.ssd1327.show()
+        
+    def blit(self, fbuf, x, y, trans):
+        self.ssd1327.blit(fbuf, x, y, trans)
+        
+    def fill(self, color):
+        self.ssd1327.fill(color)
         
     def joystick_state(self):
         return self.joystick.GetCurrentState()
